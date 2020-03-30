@@ -1,0 +1,3 @@
+[submodule "MoexIssAPI"]
+	path = MoexIssAPI
+	url = https://github.com/ITGlobal/MoexIssAPI.git

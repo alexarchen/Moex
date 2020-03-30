@@ -1,4 +1,6 @@
 /bin/
 /obj/
 /publish
+/packages
+/.vs
 Moex_TemporaryKey.pfx
