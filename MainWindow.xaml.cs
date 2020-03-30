@@ -140,9 +140,9 @@ namespace Moex
                     if (History.Count > 0)
                     {
                         StringBuilder SQL = new StringBuilder();
-                        SQL.AppendLine($"DECLARE @Id INT = (SELECT Id from Securities where Symbol='{symbol}' and Board='{History[0].Board}');\n");
-                        SQL.AppendLine($"INSERT INTO EndOfDay (SecurityId, Date, Value) VALUES");
-                        SQL.AppendLine(string.Join("\n", History.Select(s => $"(@Id,{s.Date.Year*10000+s.Date.Month*100+s.Date.Day},{s.Value}),")));
+                        SQL.AppendLine($"DECLARE @Id INT = (SELECT Id from Securities where Symbol='{symbol}' and ClassCode='{History[0].Board}');\n");
+                        SQL.AppendLine($"INSERT INTO EndOfDay (SecurityId, Date, Price) VALUES");
+                        SQL.AppendLine(string.Join(",\n", History.Select(s => $"(@Id,{s.Date.Year*10000+s.Date.Month*100+s.Date.Day},{s.Value})")));
                         SQL.AppendLine(";");
 
                         File.WriteAllText($"{symbol}.sql", SQL.ToString());
@@ -243,28 +243,35 @@ namespace Moex
 
             Boards.Clear();
 
-            var symbol = (Security?.Name?? SecText).Split(' ')[0];
+            var symbol = (Security?.Name?? SecText)?.Split(' ')?.First();
 
-            try
+            Info = "";
+
+            if (symbol != null)
             {
-                var resp = await Task.Run((() => new SecurityDefinitionRequest(symbol).Response));
+
+                try
+                {
+                    var resp = await Task.Run((() => new SecurityDefinitionRequest(symbol).Response));
 
 
-                Info =
-                       string.Join("\n", resp.Description.Data.Select(d => $"{d["name"]}: {d["value"]}"));
+                    Info =
+                           string.Join("\n", resp.Description.Data.Select(d => $"{d["name"]}: {d["value"]}"));
 
-                foreach (var board in resp.Boards.Data)
-                    Boards.Add(new Item()
-                    {
-                        Name = board["boardid"],
-                        Value = board["boardid"],
-                        Data = board
-                    });
+                    foreach (var board in resp.Boards.Data)
+                        Boards.Add(new Item()
+                        {
+                            Name = board["boardid"],
+                            Value = board["boardid"],
+                            Data = board
+                        });
 
-            }
-            catch (Exception e)
-            {
-                Info = "";
+                }
+                catch (Exception e)
+                {
+                    
+                }
+
             }
 
             FirePropertyChanged(nameof(Info));
